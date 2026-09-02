@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#fb7185" />
+<title>أوهانا 💗 هدية عمر لبسبوستي</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<!-- ===================== Firebase (compat SDK — easiest for a single copy-paste file) ===================== -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+
+<style>
+  :root{
+    --blush:#ffe4e6;
+    --pink:#fbcfe8;
+    --rosegold:#fb7185;
+    --rosegold-deep:#f43f5e;
+    --magenta:#881337;
+    --magenta-soft:#9d174d;
+  }
+  *{ -webkit-tap-highlight-color: transparent; }
+  html,body{ overscroll-behavior:none; }
+  body{
+    font-family:'Tajawal', sans-serif;
+    color:var(--magenta);
+    background:
+      radial-gradient(circle at 15% 8%, rgba(251,207,232,0.75), transparent 45%),
+      radial-gradient(circle at 90% 18%, rgba(251,113,133,0.30), transparent 42%),
+      radial-gradient(circle at 50% 100%, rgba(255,228,230,0.95), transparent 55%),
+      #fff6f8;
+    min-height:100vh;
+  }
+  h1,h2,h3,.font-display{ font-family:'Cairo', sans-serif; }
+
+  .glass{
+    background:rgba(255,255,255,0.62);
+    border:1px solid rgba(251,113,133,0.28);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .glow-border{
+    box-shadow: 0 0 0 1px rgba(251,113,133,0.18), 0 20px 40px -20px rgba(136,19,55,0.30);
+  }
+  .text-glow{ text-shadow: 0 0 22px rgba(251,113,133,0.35); }
+  .rose-glow{ color:var(--magenta); text-shadow: 0 0 18px rgba(251,113,133,0.25); }
+
+  /* ---------- Speech bubble ---------- */
+  .bubble{
+    position:relative;
+    background:rgba(255,255,255,0.97);
+    color:var(--magenta);
+    border-radius:20px;
+    box-shadow: 0 14px 30px -14px rgba(136,19,55,0.35);
+  }
+  .bubble::after{
+    content:'';
+    position:absolute;
+    bottom:-10px;
+    right:28px;
+    width:20px;height:20px;
+    background:rgba(255,255,255,0.97);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+
+  /* ---------- Envelope / scratch ---------- */
+  #envelopeScreen{
+    position:fixed; inset:0; z-index:60;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(circle at 50% 15%, rgba(251,113,133,0.25), transparent 55%),
+      #fff0f3;
+    transition: opacity .8s ease, visibility .8s ease;
+  }
+  #envelopeScreen.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  #scratchCanvas{ touch-action:none; border-radius:22px; cursor:grab; }
+
+  /* ---------- Stitch mascot (image URL from spec, graceful emoji fallback) ---------- */
+  .stitch-img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .stitch-fallback{
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.2rem;
+    background: radial-gradient(circle at 35% 30%, #fecdd3, var(--rosegold) 75%);
+    border-radius:9999px;
+  }
+  .mascot-bob{ animation: bob 3.2s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform: translateY(0) rotate(-1deg);} 50%{ transform: translateY(-8px) rotate(2deg);} }
+  .mascot-dance{ animation: dance .5s ease-in-out infinite; }
+  @keyframes dance{ 0%,100%{ transform: rotate(-9deg) translateY(0);} 50%{ transform: rotate(9deg) translateY(-6px);} }
+  .mascot-blush{ animation: blush 1.1s ease-in-out 2; }
+  @keyframes blush{ 0%,100%{ filter:none;} 50%{ filter: saturate(1.6) brightness(1.1);} }
+  .mascot-jump{ animation: jump .6s ease-in-out 2; }
+  @keyframes jump{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-16px);} }
+
+  /* ---------- Fixed Stitch narrator (bottom corner) ---------- */
+  #stitchNarrator{ max-width: 62vw; }
+  #narratorBubble{ font-size:12.5px; line-height:1.6; min-height:2.4em; }
+
+  /* ---------- Vinyl music player ---------- */
+  .vinyl-card{
+    background: linear-gradient(160deg, #ffffff, #ffe4e6 130%);
+    border:1px solid rgba(251,113,133,0.25);
+    border-radius:28px;
+    box-shadow: 0 20px 40px -20px rgba(136,19,55,0.25);
+  }
+  .vinyl-disc{
+    width:132px; height:132px; border-radius:9999px;
+    background: repeating-radial-gradient(circle at center, #4c0519 0 2px, #881337 2px 5px);
+    box-shadow: 0 12px 26px -10px rgba(136,19,55,0.55);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .vinyl-disc.spin{ animation: spin 3s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg);} }
+  .vinyl-label{
+    width:46px; height:46px; border-radius:9999px;
+    background:linear-gradient(160deg,#fda4af,var(--rosegold-deep));
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; border:3px solid #fff5f7;
+  }
+
+  input[type=range]{ -webkit-appearance:none; height:4px; border-radius:9999px; background:rgba(251,113,133,0.25); }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:14px; height:14px; border-radius:9999px;
+    background:var(--rosegold); box-shadow:0 0 8px rgba(251,113,133,0.7); margin-top:-5px;
+  }
+
+  /* ---------- Locked sections ---------- */
+  .locked-wrap{ position:relative; }
+  .locked-overlay{
+    position:absolute; inset:0; z-index:10;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:.5rem;
+    background:rgba(255,240,243,0.88);
+    border-radius:24px;
+    backdrop-filter: blur(6px);
+    transition: opacity .6s ease, visibility .6s ease;
+  }
+  .locked-overlay.open{ opacity:0; visibility:hidden; pointer-events:none; }
+
+  .record-pulse{ animation: pulse-ring 1.4s ease-out infinite; }
+  @keyframes pulse-ring{
+    0%{ box-shadow: 0 0 0 0 rgba(244,63,94,0.55); }
+    100%{ box-shadow: 0 0 0 22px rgba(244,63,94,0); }
+  }
+
+  .fade-in{ animation: fadeIn .6s ease both; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+
+  /* Celebration burst (short) */
+  .float-heart{
+    position:fixed; bottom:-40px; font-size:1.6rem; z-index:70; pointer-events:none;
+    animation: floatUp 2.6s ease-in forwards;
+  }
+  @keyframes floatUp{
+    0%{ transform: translateY(0) scale(0.8); opacity:0; }
+    15%{ opacity:1; }
+    100%{ transform: translateY(-90vh) scale(1.1); opacity:0; }
+  }
+
+  /* Ambient continuous particles (kisses + hearts + blossoms) */
+  .ambient-particle{
+    position:fixed; bottom:-40px; z-index:2; pointer-events:none; opacity:0;
+    animation-name: floatUpSlow; animation-timing-function: ease-in; animation-fill-mode:forwards;
+  }
+  @keyframes floatUpSlow{
+    0%{ transform: translateY(0) translateX(0) rotate(0deg) scale(0.8); opacity:0; }
+    10%{ opacity:0.9; }
+    50%{ transform: translateY(-50vh) translateX(14px) rotate(10deg) scale(1); }
+    100%{ transform: translateY(-105vh) translateX(-12px) rotate(-8deg) scale(1.05); opacity:0; }
+  }
+
+  ::-webkit-scrollbar{ width:6px; }
+  ::-webkit-scrollbar-thumb{ background:rgba(251,113,133,0.4); border-radius:9999px; }
+
+  .media-frame{
+    position:relative; overflow:hidden; border-radius:16px;
+    background:linear-gradient(155deg, rgba(251,207,232,0.5), rgba(251,113,133,0.20));
+  }
+  .media-frame img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .media-frame .media-fallback{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:.35rem; font-size:1.6rem; color:var(--rosegold-deep);
+  }
+</style>
+</head>
+<body class="min-h-screen relative">
+
+<!-- Background music: starts once she enters, loops forever. Small toggle to mute if needed. -->
+<audio id="bgMusic" src="./assets/audio/habebt-ya-alby.mp3" loop preload="none"></audio>
+<button id="bgMusicToggle" class="fixed top-3 left-3 z-50 w-10 h-10 rounded-full glass flex items-center justify-center text-lg" aria-label="كتم/تشغيل الموسيقى">🔊</button>
+
+<!-- Fixed Stitch narrator (bottom corner) — hidden until she's inside -->
+<div id="stitchNarrator" class="hidden fixed bottom-4 right-3 z-40 flex flex-col items-end gap-2">
+  <div id="narratorBubble" class="bubble px-3 py-2 text-xs font-medium"></div>
+  <button id="sayNiceBtn" class="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-md active:scale-95 transition" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">قولي حاجة حلوة يا ستيتش! 💗</button>
+  <div class="w-16 h-16 rounded-full overflow-hidden mascot-bob glow-border bg-white" id="narratorAvatarWrap">
+    <img id="narratorAvatarImg" src="https://pngimg.com/uploads/stitch/stitch_PNG13.png" alt="ستيتش" class="stitch-img" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'stitch-fallback',innerText:'💗'}))" />
+  </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- ENVELOPE / SCRATCH SCREEN                                      -->
+<!-- ============================================================= -->
+<div id="envelopeScreen" class="p-5">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-5">
+      <div class="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden mascot-bob glow-border bg-white">
+        <img src="https://pngimg.com/uploads/stitch/stitch_PNG33.png" alt="ستيتش" class="stitch-img" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'stitch-fallback',innerText:'💗'}))" />
+      </div>
+      <h1 class="font-display font-black text-xl text-glow">فيه ظرف مخصوص ليكي يا بسبوستي</h1>
+      <p class="text-[13px] mt-1" style="color:var(--magenta-soft);">امسحي عليه بإصبعك عشان تشوفي اللي جواه</p>
+    </div>
+
+    <div id="envelopeCard" class="glass glow-border rounded-3xl p-4 relative">
+      <canvas id="scratchCanvas" class="w-full" style="height:260px;"></canvas>
+
+      <div id="envelopeReveal" class="hidden text-center px-1 py-2">
+        <p id="envelopeText" class="font-display leading-8 text-[15px]" style="color:var(--magenta);"></p>
+        <button id="enterAppBtn" class="hidden mt-5 w-full py-3 rounded-2xl font-display font-bold text-white active:scale-95 transition" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">
+          أدخلي إلى عالمك 💗
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- MAIN APP                                                       -->
+<!-- ============================================================= -->
+<main id="mainApp" class="hidden relative z-10 max-w-md mx-auto px-4 pb-24 pt-6 space-y-8">
+
+  <!-- Hero -->
+  <section class="text-center">
+    <h1 class="font-display font-black text-3xl text-glow">أوهانا 💗</h1>
+    <p class="text-sm mt-1" style="color:var(--magenta-soft);">من عمر… لأغلى حاجة عنده</p>
+  </section>
+
+  <!-- ============ Love Counter ============ -->
+  <section class="glass glow-border rounded-3xl p-5">
+    <h2 class="font-display font-bold text-center text-lg rose-glow mb-4">عداد أوهانا - بحبك يا عمري</h2>
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div class="bg-white/60 rounded-2xl py-3"><div id="cYears" class="font-display font-black text-2xl" style="color:var(--rosegold-deep);">0</div><div class="text-[11px] mt-1" style="color:var(--magenta-soft);">سنة</div></div>
+      <div class="bg-white/60 rounded-2xl py-3"><div id="cMonths" class="font-display font-black text-2xl" style="color:var(--rosegold-deep);">0</div><div class="text-[11px] mt-1" style="color:var(--magenta-soft);">شهر</div></div>
+      <div class="bg-white/60 rounded-2xl py-3"><div id="cDays" class="font-display font-black text-2xl" style="color:var(--rosegold-deep);">0</div><div class="text-[11px] mt-1" style="color:var(--magenta-soft);">يوم</div></div>
+      <div class="bg-white/60 rounded-2xl py-3"><div id="cHours" class="font-display font-black text-2xl" style="color:var(--magenta);">0</div><div class="text-[11px] mt-1" style="color:var(--magenta-soft);">ساعة</div></div>
+      <div class="bg-white/60 rounded-2xl py-3"><div id="cMinutes" class="font-display font-black text-2xl" style="color:var(--magenta);">0</div><div class="text-[11px] mt-1" style="color:var(--magenta-soft);">دقيقة</div></div>
+      <div class="bg-white/60 rounded-2xl py-3"><div id="cSeconds" class="font-display font-black text-2xl" style="color:var(--magenta);">0</div><div class="text-[11px] mt-1" style="color:var(--magenta-soft);">ثانية</div></div>
+    </div>
+    <p class="text-center text-[11px] mt-4" style="color:var(--magenta-soft);">من 18 أكتوبر 2025 لحد دلوقتي… وهيفضل العداد شغال 💗</p>
+  </section>
+
+  <!-- ============ Music Player (vinyl) ============ -->
+  <section class="vinyl-card p-5">
+    <div class="flex flex-col items-center">
+      <div class="vinyl-disc" id="vinylDisc"><div class="vinyl-label">💗</div></div>
+      <div class="text-center mt-4 max-w-full px-2">
+        <div id="trackTitle" class="font-display font-bold text-sm truncate">إحساسي معاك</div>
+        <div id="trackArtist" class="text-[11px] truncate" style="color:var(--magenta-soft);">رامي صبري</div>
+      </div>
+    </div>
+
+    <input id="progressBar" type="range" min="0" max="100" value="0" class="w-full mt-4 mb-2" />
+    <div class="flex justify-between text-[10px] mb-2" style="color:var(--magenta-soft);">
+      <span id="curTime">0:00</span><span id="durTime">0:00</span>
+    </div>
+
+    <div class="flex items-center justify-center gap-6 mt-2">
+      <button id="prevBtn" class="text-2xl active:scale-90 transition">⏮️</button>
+      <button id="playBtn" class="w-14 h-14 rounded-full text-white text-xl flex items-center justify-center active:scale-90 transition" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">▶️</button>
+      <button id="nextBtn" class="text-2xl active:scale-90 transition">⏭️</button>
+    </div>
+    <audio id="audioPlayer" preload="metadata"></audio>
+    <p class="text-center text-[10px] mt-4" style="color:var(--magenta-soft);">ضيفي ملفات الأغاني في ./assets/audio/ عشان تسمعيها 🎵 (وأغنية عمرو دياب "حبيت ياقلبي" بتلعب في الخلفية طول الوقت — حطيها باسم habebt-ya-alby.mp3)</p>
+  </section>
+
+  <!-- ============ Voice Unlock Gate ============ -->
+  <section class="glass glow-border rounded-3xl p-5 text-center" id="voiceGateSection">
+    <div class="w-14 h-14 mx-auto mb-3 rounded-full overflow-hidden mascot-bob bg-white">
+      <span class="stitch-fallback" style="font-size:1.6rem;">🔒</span>
+    </div>
+    <h2 class="font-display font-bold text-lg">خزنة البصمة الصوتية 🔐</h2>
+    <p class="text-sm mt-1 mb-5" style="color:var(--magenta-soft);">سجّلي صوتك وانتي بتقولي "بحبك" عشان تفتحي الباقي 💗</p>
+
+    <button id="recordGateBtn" class="w-20 h-20 rounded-full text-2xl mx-auto flex items-center justify-center active:scale-95 transition text-white" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">🎙️</button>
+    <p id="gateStatus" class="text-xs mt-3" style="color:var(--magenta-soft);">دوسي واتكلمي، ودوسي تاني عشان توقفي</p>
+  </section>
+
+  <!-- ============ Message / Quote Wall ============ -->
+  <section class="locked-wrap">
+    <div class="glass glow-border rounded-3xl p-5 space-y-5">
+      <h2 class="font-display font-bold text-lg text-center rose-glow">حائط الرسائل والكلام الحلو 💌</h2>
+
+      <div id="defaultQuotes" class="grid grid-cols-1 gap-2"></div>
+
+      <div class="border-t pt-4" style="border-color:rgba(251,113,133,0.2);">
+        <h3 class="font-display font-semibold text-sm mb-2" style="color:var(--magenta-soft);">ابعتيلي كلمة يا بسبوستي</h3>
+        <div class="flex gap-2">
+          <input id="msgInput" type="text" placeholder="اكتبي هنا..." class="flex-1 bg-white/70 border rounded-xl px-3 py-2 text-sm outline-none" style="border-color:rgba(251,113,133,0.3);" />
+          <button id="sendMsgBtn" class="text-white rounded-xl px-4 font-bold active:scale-95 transition" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">إرسال</button>
+        </div>
+        <button id="recordMsgBtn" class="mt-2 w-full py-2 rounded-xl border text-sm active:scale-95 transition" style="border-color:rgba(251,113,133,0.4); color:var(--rosegold-deep);">🎙️ سجّلي رسالة صوتية</button>
+      </div>
+
+      <div id="messageFeed" class="space-y-2"></div>
+    </div>
+    <div class="locked-overlay" id="wallLock">
+      <span class="text-3xl">🔒</span>
+      <p class="text-sm" style="color:var(--magenta-soft);">افتحي خزنة الصوت الأول</p>
+    </div>
+  </section>
+
+  <!-- ============ Q&A Confession Game ============ -->
+  <section class="locked-wrap">
+    <div class="glass glow-border rounded-3xl p-5 space-y-4">
+      <h2 class="font-display font-bold text-lg text-center rose-glow">لعبة صراحة ستيتش 🙈</h2>
+      <p class="text-center text-xs -mt-2" style="color:var(--magenta-soft);">مش لازم تتقيدي بالأسئلة الجاهزة.. اسأليني أي حاجة انتِ عايزاها 👇</p>
+
+      <div>
+        <div class="flex gap-2">
+          <input id="addQuestionInput" type="text" placeholder="اكتبي سؤالك انتِ هنا..." class="flex-1 bg-white/70 border rounded-xl px-3 py-2 text-sm outline-none" style="border-color:rgba(251,113,133,0.3);" />
+          <button id="addQuestionBtn" class="text-white rounded-xl px-4 font-bold active:scale-95 transition" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">ضيفي سؤالي</button>
+        </div>
+      </div>
+
+      <div class="border-t pt-4" style="border-color:rgba(251,113,133,0.2);">
+        <div id="questionsContainer" class="space-y-3"></div>
+      </div>
+    </div>
+    <div class="locked-overlay" id="qnaLock">
+      <span class="text-3xl">🔒</span>
+      <p class="text-sm" style="color:var(--magenta-soft);">افتحي خزنة الصوت الأول</p>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="grid grid-cols-1 gap-3">
+    <div class="media-frame" style="height:180px;">
+      <img src="./assets/images/couples.jpg" alt="إحنا الاتنين" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      <div class="media-fallback" style="display:none;"><span>💗</span><span class="text-[11px]">ضيفي صورتكم هنا: ./assets/images/couples.jpg</span></div>
+    </div>
+  </section>
+
+  <footer class="text-center text-[11px] pt-4" style="color:var(--magenta-soft);">
+    صنع بكل حب من عمر 💗 لبسبوستي — أوهانا تعني إن محدش يتسيب أو يتنسى
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =====================================================================
+     0) FIREBASE SETUP — replace with your own project keys.
+     Get these from: Firebase console → Project settings → General
+     Also enable Realtime Database + Storage from the left sidebar.
+     ===================================================================== */
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY_HERE",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  let db = null;
+  let firebaseReady = false;
+  try{
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY_HERE" && window.firebase){
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      firebaseReady = true;
+    }
+  }catch(err){
+    console.warn("Firebase init failed — falling back to local storage sync.", err);
+  }
+
+  // Small storage abstraction: uses Firebase Realtime DB when configured,
+  // otherwise falls back to localStorage so the page still works fully
+  // for local testing before you paste in your real Firebase config.
+  const store = {
+    push(path, data){
+      if (firebaseReady){ db.ref(path).push(data); return; }
+      const arr = JSON.parse(localStorage.getItem(path) || "[]");
+      arr.push(Object.assign({ _id: "local_" + Date.now() + "_" + Math.random().toString(36).slice(2) }, data));
+      localStorage.setItem(path, JSON.stringify(arr));
+      window.dispatchEvent(new CustomEvent("store:" + path));
+    },
+    set(path, data){
+      if (firebaseReady){ db.ref(path).update(data); return; }
+      const obj = JSON.parse(localStorage.getItem(path) || "{}");
+      Object.assign(obj, data);
+      localStorage.setItem(path, JSON.stringify(obj));
+      window.dispatchEvent(new CustomEvent("store:" + path));
+    },
+    onList(path, cb){
+      if (firebaseReady){
+        db.ref(path).on("value", snap => {
+          const val = snap.val() || {};
+          cb(Object.keys(val).map(id => Object.assign({ id }, val[id])));
+        });
+        return;
+      }
+      const load = () => {
+        const arr = JSON.parse(localStorage.getItem(path) || "[]");
+        cb(arr.map(x => Object.assign({ id: x._id }, x)));
+      };
+      load();
+      window.addEventListener("store:" + path, load);
+    },
+    onValue(path, cb){
+      if (firebaseReady){
+        db.ref(path).on("value", snap => cb(snap.val() || {}));
+        return;
+      }
+      const load = () => cb(JSON.parse(localStorage.getItem(path) || "{}"));
+      load();
+      window.addEventListener("store:" + path, load);
+    }
+  };
+
+  /* =====================================================================
+     Shared helper: typewriter effect (used by envelope reveal + narrator)
+     ===================================================================== */
+  function typewrite(el, text, speed, done){
+    if (el._typeTimer) clearInterval(el._typeTimer);
+    el.textContent = "";
+    let i = 0;
+    el._typeTimer = setInterval(() => {
+      el.textContent += text[i];
+      i++;
+      if (i >= text.length){
+        clearInterval(el._typeTimer);
+        el._typeTimer = null;
+        if (done) done();
+      }
+    }, speed);
+  }
+
+  /* =====================================================================
+     Romantic quotes — used by BOTH the Stitch narrator bubble and the
+     Quote Wall, exactly as specified.
+     ===================================================================== */
+  const romanticQuotes = [
+    "وما زلت في كل مرة أحدثك فيها أعشقك من جديد.. أنت نعمة متعلقة لأقصى حد في نفسي!",
+    "أريدك أن تعرفي جيدًا أن وجودك يشكل فارقًا عظيمًا في قلبي وفي توازني واستقراري.",
+    "أخاف عليك من كل شيء وأفكر بك طوال الوقت.. أحبك في كل مرة أتذكر فيها وجهك وتلك الابتسامة.",
+    "أحببتك جدًا.. لا أعرف ما الذي حل بي، وكأنما ارتبطت بك صدفة وسقطت قلوبنا وبدل كل منا قلبه، أخذت قلبي وأخذت قلبك.",
+    "يا شيئًا من نعيم الدنيا.. أحبك، ويليق بك أن أستثنيك عن الكل.",
+    "إنما الأرواح على صفاء نواياها تتلاقى.. أنت لست أول حب، أنت أول حياة!",
+    "تعلقة بأصغر تفاصيلك.. أحببتك حتى رأوك في عيني وسمعوك في ضحكتي وشعروا بك في حديثي.",
+    "وإن أحبوك ألفًا، فلن يحبوك إلا قطرة من بحري! أحببتك فعلاً حتى عرفت أنك عالم يسكن بداخلي.",
+    "لست أمام عيني.. لكنك كل ما أرى! بحبك يا بسبوستي وأغلى حاجة عندي."
+  ];
+
+  /* =====================================================================
+     1) SCRATCH ENVELOPE
+     ===================================================================== */
+  const envelopeScreen = document.getElementById("envelopeScreen");
+  const scratchCanvas = document.getElementById("scratchCanvas");
+  const sctx = scratchCanvas.getContext("2d");
+  const envelopeReveal = document.getElementById("envelopeReveal");
+  const envelopeText = document.getElementById("envelopeText");
+  const enterAppBtn = document.getElementById("enterAppBtn");
+
+  const REVEAL_MESSAGE = "وما زلت في كل مرة أحدثك فيها أعشقك من جديد. أريدك أن تعرفي جيدًا أن وجودك يشكل فارقًا عظيمًا في قلبي وفي توازني واستقراري. أنت نعمة متعلقة لأقصى حد في نفسي.. بحبك يا بسبوستي!";
+
+  let revealed = false;
+  let scratching = false;
+
+  function sizeCanvas(){
+    const rect = scratchCanvas.getBoundingClientRect();
+    scratchCanvas.width = rect.width;
+    scratchCanvas.height = rect.height;
+    paintScratchLayer();
+  }
+
+  function paintScratchLayer(){
+    const w = scratchCanvas.width, h = scratchCanvas.height;
+    sctx.globalCompositeOperation = "source-over";
+    const grad = sctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, "#fb7185");
+    grad.addColorStop(1, "#fbcfe8");
+    sctx.fillStyle = grad;
+    sctx.fillRect(0, 0, w, h);
+    sctx.fillStyle = "rgba(255,255,255,0.95)";
+    sctx.textAlign = "center";
+    sctx.textBaseline = "middle";
+    sctx.font = "bold 18px Cairo, sans-serif";
+    sctx.fillText("💗", w / 2, h / 2 - 26);
+    sctx.font = "bold 16px Cairo, sans-serif";
+    sctx.fillText("امسحي هنا يا بسبوستي", w / 2, h / 2 + 8);
+    sctx.font = "13px Tajawal, sans-serif";
+    sctx.fillStyle = "rgba(255,255,255,0.85)";
+    sctx.fillText("في ظرف عمر المخصوص ليكي", w / 2, h / 2 + 32);
+  }
+
+  function getPointFromEvent(e){
+    const rect = scratchCanvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function scratchAt(x, y){
+    sctx.globalCompositeOperation = "destination-out";
+    sctx.beginPath();
+    sctx.arc(x, y, 26, 0, Math.PI * 2);
+    sctx.fill();
+  }
+
+  function checkRevealPercent(){
+    const w = scratchCanvas.width, h = scratchCanvas.height;
+    if (!w || !h) return 0;
+    const data = sctx.getImageData(0, 0, w, h).data;
+    let cleared = 0, sampled = 0;
+    for (let i = 3; i < data.length; i += 4 * 15){
+      sampled++;
+      if (data[i] === 0) cleared++;
+    }
+    return sampled ? cleared / sampled : 0;
+  }
+
+  function revealEnvelope(){
+    if (revealed) return;
+    revealed = true;
+    scratchCanvas.style.transition = "opacity .6s ease";
+    scratchCanvas.style.opacity = "0";
+    setTimeout(() => { scratchCanvas.classList.add("hidden"); }, 600);
+    envelopeReveal.classList.remove("hidden");
+    typewrite(envelopeText, REVEAL_MESSAGE, 28, () => {
+      enterAppBtn.classList.remove("hidden");
+    });
+  }
+
+  scratchCanvas.addEventListener("pointerdown", e => {
+    scratching = true;
+    const p = getPointFromEvent(e);
+    scratchAt(p.x, p.y);
+  });
+  scratchCanvas.addEventListener("pointermove", e => {
+    if (!scratching || revealed) return;
+    const p = getPointFromEvent(e);
+    scratchAt(p.x, p.y);
+    if (checkRevealPercent() > 0.5) revealEnvelope();
+  });
+  window.addEventListener("pointerup", () => { scratching = false; });
+
+  window.addEventListener("resize", sizeCanvas);
+  sizeCanvas();
+
+  /* =====================================================================
+     2) STITCH NARRATOR (fixed bottom corner, cycling speech bubble)
+     ===================================================================== */
+  const stitchNarrator = document.getElementById("stitchNarrator");
+  const narratorBubble = document.getElementById("narratorBubble");
+  const sayNiceBtn = document.getElementById("sayNiceBtn");
+  const narratorAvatarWrap = document.getElementById("narratorAvatarWrap");
+  const narratorAvatarImg = document.getElementById("narratorAvatarImg");
+
+  let narratorIndex = -1;
+  let narratorTimer = null;
+
+  function narratorShow(idx){
+    narratorIndex = idx;
+    typewrite(narratorBubble, romanticQuotes[idx], 26);
+  }
+  function narratorNext(){
+    narratorShow((narratorIndex + 1) % romanticQuotes.length);
+  }
+  function narratorRandom(){
+    let idx;
+    do { idx = Math.floor(Math.random() * romanticQuotes.length); }
+    while (idx === narratorIndex && romanticQuotes.length > 1);
+    narratorShow(idx);
+  }
+  function startNarrator(){
+    narratorNext();
+    if (narratorTimer) clearInterval(narratorTimer);
+    narratorTimer = setInterval(narratorNext, 4000);
+  }
+
+  function mascotReact(kind){
+    narratorAvatarWrap.classList.remove("mascot-blush", "mascot-jump", "mascot-dance", "mascot-bob");
+    narratorAvatarWrap.classList.add(kind);
+    setTimeout(() => {
+      narratorAvatarWrap.classList.remove(kind);
+      narratorAvatarWrap.classList.add("mascot-bob");
+    }, 1400);
+  }
+
+  sayNiceBtn.addEventListener("click", () => {
+    mascotReact("mascot-jump");
+    narratorRandom();
+    if (narratorTimer) clearInterval(narratorTimer);
+    narratorTimer = setInterval(narratorNext, 4000);
+  });
+
+  function celebrateUnlock(){
+    const original = narratorAvatarImg.getAttribute("src");
+    narratorAvatarImg.src = "https://pngimg.com/uploads/stitch/stitch_PNG29.png";
+    mascotReact("mascot-dance");
+    spawnHearts(16);
+    setTimeout(() => { narratorAvatarImg.src = original; }, 3000);
+  }
+
+  /* =====================================================================
+     Celebration + ambient floating particles
+     ===================================================================== */
+  function spawnHearts(count){
+    for (let i = 0; i < count; i++){
+      setTimeout(() => {
+        const h = document.createElement("div");
+        h.className = "float-heart";
+        h.textContent = ["💗","💖","💕","🌸"][Math.floor(Math.random() * 4)];
+        h.style.left = (10 + Math.random() * 80) + "vw";
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 2700);
+      }, i * 120);
+    }
+  }
+
+  const ambientEmojis = ["💋", "💖", "💕", "🌸"];
+  let ambientTimer = null;
+  function spawnAmbientParticle(){
+    const p = document.createElement("div");
+    p.className = "ambient-particle";
+    p.textContent = ambientEmojis[Math.floor(Math.random() * ambientEmojis.length)];
+    p.style.left = (3 + Math.random() * 94) + "vw";
+    const duration = 5 + Math.random() * 3;
+    p.style.animationDuration = duration + "s";
+    p.style.fontSize = (1 + Math.random() * 0.8) + "rem";
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), duration * 1000 + 200);
+  }
+  function startAmbientParticles(){
+    if (ambientTimer) return;
+    spawnAmbientParticle();
+    ambientTimer = setInterval(spawnAmbientParticle, 900);
+  }
+
+  /* =====================================================================
+     Enter the app: reveal main content, start narrator, particles, music
+     ===================================================================== */
+  enterAppBtn.addEventListener("click", () => {
+    envelopeScreen.classList.add("hide");
+    document.getElementById("mainApp").classList.remove("hidden");
+    stitchNarrator.classList.remove("hidden");
+    startNarrator();
+    startAmbientParticles();
+    bgMusic.play().catch(() => {});
+  });
+
+  /* =====================================================================
+     3) LIVE LOVE COUNTER
+     ===================================================================== */
+  const startDate = new Date("2025-10-18T16:00:43");
+  const els = {
+    y: document.getElementById("cYears"),
+    mo: document.getElementById("cMonths"),
+    d: document.getElementById("cDays"),
+    h: document.getElementById("cHours"),
+    mi: document.getElementById("cMinutes"),
+    s: document.getElementById("cSeconds")
+  };
+
+  function updateCounter(){
+    const now = new Date();
+    let cursor = new Date(startDate.getTime());
+    let years = 0, months = 0;
+
+    while (true){
+      const next = new Date(cursor.getTime());
+      next.setFullYear(next.getFullYear() + 1);
+      if (next <= now){ years++; cursor = next; } else break;
+    }
+    while (true){
+      const next = new Date(cursor.getTime());
+      next.setMonth(next.getMonth() + 1);
+      if (next <= now){ months++; cursor = next; } else break;
+    }
+
+    let diffMs = Math.max(0, now - cursor);
+    const days = Math.floor(diffMs / 86400000); diffMs -= days * 86400000;
+    const hours = Math.floor(diffMs / 3600000); diffMs -= hours * 3600000;
+    const minutes = Math.floor(diffMs / 60000); diffMs -= minutes * 60000;
+    const seconds = Math.floor(diffMs / 1000);
+
+    els.y.textContent = years;
+    els.mo.textContent = months;
+    els.d.textContent = days;
+    els.h.textContent = hours;
+    els.mi.textContent = minutes;
+    els.s.textContent = seconds;
+  }
+  updateCounter();
+  setInterval(updateCounter, 1000);
+
+  /* =====================================================================
+     3.5) BACKGROUND MUSIC — Amr Diab, loops forever once she's inside.
+     Pauses automatically while she plays a track from the vinyl player,
+     then picks back up so the two never overlap.
+     ===================================================================== */
+  const bgMusic = document.getElementById("bgMusic");
+  const bgMusicToggle = document.getElementById("bgMusicToggle");
+  let bgWasPlaying = false;
+
+  bgMusicToggle.addEventListener("click", () => {
+    bgMusic.muted = !bgMusic.muted;
+    bgMusicToggle.textContent = bgMusic.muted ? "🔇" : "🔊";
+  });
+
+  /* =====================================================================
+     4) VINYL MUSIC PLAYER
+     ===================================================================== */
+  const tracks = [
+    { title: "إحساسي معاك", artist: "رامي صبري", src: "./assets/audio/ihsasy-maak.mp3" },
+    { title: "بحبك",         artist: "رامي صبري", src: "./assets/audio/bahebak-ramy.mp3" },
+    { title: "مش حبيبي بس",  artist: "أنغام",      src: "./assets/audio/mesh-habibi-bas.mp3" },
+    { title: "عايش عشانك",   artist: "وائل جسار",  src: "./assets/audio/ayesh-ashanek.mp3" },
+    { title: "أصابك عشق",    artist: "عبد الرحمن محمد", src: "./assets/audio/asabaka-eshq.mp3" }
+  ];
+  let trackIndex = 0;
+  const audio = document.getElementById("audioPlayer");
+  const playBtn = document.getElementById("playBtn");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const progressBar = document.getElementById("progressBar");
+  const curTimeEl = document.getElementById("curTime");
+  const durTimeEl = document.getElementById("durTime");
+  const trackTitleEl = document.getElementById("trackTitle");
+  const trackArtistEl = document.getElementById("trackArtist");
+  const vinylDisc = document.getElementById("vinylDisc");
+
+  function formatTime(t){
+    if (!isFinite(t)) return "0:00";
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60).toString().padStart(2, "0");
+    return m + ":" + s;
+  }
+
+  function loadTrack(i, autoplay){
+    trackIndex = (i + tracks.length) % tracks.length;
+    const t = tracks[trackIndex];
+    audio.src = t.src;
+    trackTitleEl.textContent = t.title;
+    trackArtistEl.textContent = t.artist;
+    if (autoplay) audio.play().catch(() => {});
+  }
+
+  playBtn.addEventListener("click", () => {
+    if (audio.paused){
+      audio.play().catch(() => {
+        trackTitleEl.textContent = tracks[trackIndex].title + " (حطي الملف في ./assets/audio/)";
+      });
+    } else {
+      audio.pause();
+    }
+  });
+  audio.addEventListener("play", () => {
+    playBtn.textContent = "⏸️";
+    vinylDisc.classList.add("spin");
+    if (!bgMusic.paused){ bgWasPlaying = true; bgMusic.pause(); }
+  });
+  audio.addEventListener("pause", () => {
+    playBtn.textContent = "▶️";
+    vinylDisc.classList.remove("spin");
+    if (bgWasPlaying){ bgMusic.play().catch(() => {}); bgWasPlaying = false; }
+  });
+  nextBtn.addEventListener("click", () => loadTrack(trackIndex + 1, !audio.paused));
+  prevBtn.addEventListener("click", () => loadTrack(trackIndex - 1, !audio.paused));
+  audio.addEventListener("ended", () => loadTrack(trackIndex + 1, true));
+  audio.addEventListener("timeupdate", () => {
+    progressBar.value = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+    curTimeEl.textContent = formatTime(audio.currentTime);
+  });
+  audio.addEventListener("loadedmetadata", () => {
+    durTimeEl.textContent = formatTime(audio.duration);
+  });
+  progressBar.addEventListener("input", () => {
+    if (audio.duration) audio.currentTime = (progressBar.value / 100) * audio.duration;
+  });
+
+  loadTrack(0, false);
+
+  /* =====================================================================
+     5) VOICE UNLOCK GATE
+     ===================================================================== */
+  const recordGateBtn = document.getElementById("recordGateBtn");
+  const gateStatus = document.getElementById("gateStatus");
+  const wallLock = document.getElementById("wallLock");
+  const qnaLock = document.getElementById("qnaLock");
+
+  let gateRecorder = null, gateChunks = [], gateRecording = false;
+
+  function blobToBase64(blob){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function toggleGateRecording(){
+    if (!gateRecording){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        gateChunks = [];
+        gateRecorder = new MediaRecorder(stream);
+        gateRecorder.ondataavailable = e => gateChunks.push(e.data);
+        gateRecorder.onstop = async () => {
+          stream.getTracks().forEach(t => t.stop());
+          const blob = new Blob(gateChunks, { type: "audio/webm" });
+          const base64 = await blobToBase64(blob);
+          store.push("voiceUnlock", { audio: base64, timestamp: Date.now() });
+          unlockSections();
+        };
+        gateRecorder.start();
+        gateRecording = true;
+        recordGateBtn.classList.add("record-pulse");
+        gateStatus.textContent = "بتسجل دلوقتي… قولي بحبك 💗 (دوسي تاني عشان توقفي)";
+      }catch(err){
+        gateStatus.textContent = "محتاجة تسمحي بالميكروفون عشان تفتحي الخزنة 🎙️";
+      }
+    } else {
+      gateRecorder.stop();
+      gateRecording = false;
+      recordGateBtn.classList.remove("record-pulse");
+      gateStatus.textContent = "تم يا بسبوستي! جاري فتح الخزنة… 🔓";
+    }
+  }
+  recordGateBtn.addEventListener("click", toggleGateRecording);
+
+  function unlockSections(){
+    wallLock.classList.add("open");
+    qnaLock.classList.add("open");
+    celebrateUnlock();
+    gateStatus.textContent = "الخزنة اتفتحت! 💗 استمتعي يا بسبوستي";
+  }
+
+  /* =====================================================================
+     6) MESSAGE / QUOTE WALL
+     ===================================================================== */
+  const defaultQuotesContainer = document.getElementById("defaultQuotes");
+  romanticQuotes.forEach(q => {
+    const card = document.createElement("div");
+    card.className = "bg-white/60 border rounded-2xl px-4 py-3 text-sm leading-7 fade-in";
+    card.style.borderColor = "rgba(251,113,133,0.2)";
+    card.textContent = q;
+    defaultQuotesContainer.appendChild(card);
+  });
+
+  const msgInput = document.getElementById("msgInput");
+  const sendMsgBtn = document.getElementById("sendMsgBtn");
+  const recordMsgBtn = document.getElementById("recordMsgBtn");
+  const messageFeed = document.getElementById("messageFeed");
+
+  sendMsgBtn.addEventListener("click", () => {
+    const text = msgInput.value.trim();
+    if (!text) return;
+    store.push("messages", { type: "text", content: text, timestamp: Date.now() });
+    msgInput.value = "";
+    mascotReact("mascot-blush");
+  });
+  msgInput.addEventListener("keydown", e => { if (e.key === "Enter") sendMsgBtn.click(); });
+
+  let msgRecorder = null, msgChunks = [], msgRecording = false;
+  recordMsgBtn.addEventListener("click", async () => {
+    if (!msgRecording){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        msgChunks = [];
+        msgRecorder = new MediaRecorder(stream);
+        msgRecorder.ondataavailable = e => msgChunks.push(e.data);
+        msgRecorder.onstop = async () => {
+          stream.getTracks().forEach(t => t.stop());
+          const blob = new Blob(msgChunks, { type: "audio/webm" });
+          const base64 = await blobToBase64(blob);
+          store.push("messages", { type: "audio", content: base64, timestamp: Date.now() });
+          mascotReact("mascot-jump");
+        };
+        msgRecorder.start();
+        msgRecording = true;
+        recordMsgBtn.textContent = "⏹️ دوسي عشان توقفي التسجيل";
+      }catch(err){
+        recordMsgBtn.textContent = "محتاجة إذن الميكروفون 🎙️";
+      }
+    } else {
+      msgRecorder.stop();
+      msgRecording = false;
+      recordMsgBtn.textContent = "🎙️ سجّلي رسالة صوتية";
+    }
+  });
+
+  store.onList("messages", items => {
+    items.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    messageFeed.innerHTML = "";
+    items.forEach(m => {
+      const card = document.createElement("div");
+      card.className = "bg-white/50 border rounded-2xl px-4 py-3 text-sm fade-in";
+      card.style.borderColor = "rgba(251,113,133,0.25)";
+      if (m.type === "audio"){
+        const audioEl = document.createElement("audio");
+        audioEl.controls = true;
+        audioEl.className = "w-full";
+        audioEl.src = m.content;
+        card.appendChild(audioEl);
+      } else {
+        card.textContent = m.content;
+      }
+      messageFeed.appendChild(card);
+    });
+  });
+
+  /* =====================================================================
+     7) Q&A CONFESSION GAME
+     ===================================================================== */
+  const defaultQuestions = [
+    "ايه أكتر حاجة بتحبيها فيا؟",
+    "لو نروح رحلة سوا، تختاري نروح فين؟",
+    "ايه أول حاجة لفتت نظرك فيا؟",
+    "ايه اللحظة اللي حسيتي فيها اني بحبك جامد؟",
+    "لو تقدري تغيري حاجة فينا، هتغيري ايه؟",
+    "احلى ذكرى ليك معايا ايه؟"
+  ];
+
+  const questionsContainer = document.getElementById("questionsContainer");
+  const addQuestionInput = document.getElementById("addQuestionInput");
+  const addQuestionBtn = document.getElementById("addQuestionBtn");
+
+  function questionCard(qId, text){
+    const wrap = document.createElement("div");
+    wrap.className = "bg-white/60 border rounded-2xl p-4 fade-in";
+    wrap.style.borderColor = "rgba(251,113,133,0.2)";
+    wrap.innerHTML =
+      '<p class="text-sm font-semibold mb-3">' + text + '</p>' +
+      '<div class="grid grid-cols-2 gap-2">' +
+        '<div>' +
+          '<span class="text-[10px]" style="color:var(--rosegold-deep);">عمر</span>' +
+          '<textarea data-role="omar" rows="2" class="w-full mt-1 bg-white/70 border rounded-xl px-2 py-1 text-xs outline-none" style="border-color:rgba(251,113,133,0.25);"></textarea>' +
+        '</div>' +
+        '<div>' +
+          '<span class="text-[10px]" style="color:var(--magenta-soft);">بسبوستي</span>' +
+          '<textarea data-role="her" rows="2" class="w-full mt-1 bg-white/70 border rounded-xl px-2 py-1 text-xs outline-none" style="border-color:rgba(251,113,133,0.25);"></textarea>' +
+        '</div>' +
+      '</div>' +
+      '<button data-role="save" class="mt-3 w-full py-1.5 rounded-xl text-white text-xs font-bold active:scale-95 transition" style="background:linear-gradient(135deg,var(--rosegold),var(--rosegold-deep));">حفظ الإجابة</button>';
+
+    const omarBox = wrap.querySelector('[data-role="omar"]');
+    const herBox = wrap.querySelector('[data-role="her"]');
+    wrap.querySelector('[data-role="save"]').addEventListener("click", () => {
+      store.set("qna/" + qId, { question: text, omar: omarBox.value, her: herBox.value });
+      mascotReact("mascot-blush");
+      spawnHearts(4);
+    });
+
+    store.onValue("qna/" + qId, val => {
+      if (val.omar !== undefined && document.activeElement !== omarBox) omarBox.value = val.omar;
+      if (val.her !== undefined && document.activeElement !== herBox) herBox.value = val.her;
+    });
+
+    return wrap;
+  }
+
+  defaultQuestions.forEach((q, idx) => {
+    questionsContainer.appendChild(questionCard("q" + idx, q));
+  });
+
+  let customQuestionCounter = 0;
+  addQuestionBtn.addEventListener("click", () => {
+    const text = addQuestionInput.value.trim();
+    if (!text) return;
+    const qId = "custom_" + Date.now() + "_" + (customQuestionCounter++);
+    questionsContainer.prepend(questionCard(qId, text));
+    store.set("qna/" + qId, { question: text, omar: "", her: "" });
+    addQuestionInput.value = "";
+  });
+  addQuestionInput.addEventListener("keydown", e => { if (e.key === "Enter") addQuestionBtn.click(); });
+
+})();
+</script>
+</body>
+</html>
